@@ -1,9 +1,9 @@
 {
-  "name": "@cloudscape-design/components-monorepo",
+  "name": "wx-ui-components",
   "version": "3.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cloudscape-design/components.git"
+    "url": "https://github.com/ParidelPooya/polaris-enhanced-components.git"
   },
   "homepage": "https://cloudscape.design",
   "files": [],

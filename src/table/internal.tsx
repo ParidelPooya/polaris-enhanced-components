@@ -65,6 +65,10 @@ const InternalTable = React.forwardRef(
       onColumnWidthsChange,
       variant,
       __internalRootRef,
+      expanded,
+      expandedContent,
+      disabled,
+      compactRow,
       ...rest
     }: InternalTableProps<T>,
     ref: React.Ref<TableProps.Ref>
@@ -123,8 +127,8 @@ const InternalTable = React.forwardRef(
     const computedVariant = isRefresh
       ? variant
       : ['embedded', 'full-page'].indexOf(variant) > -1
-      ? 'container'
-      : variant;
+        ? 'container'
+        : variant;
     const hasHeader = !!(header || filter || pagination || preferences);
 
     const theadProps: TheadProps = {
@@ -264,55 +268,82 @@ const InternalTable = React.forwardRef(
                     const isPrevSelected = !!selectionType && !firstVisible && isItemSelected(items[rowIndex - 1]);
                     const isNextSelected = !!selectionType && !lastVisible && isItemSelected(items[rowIndex + 1]);
                     return (
-                      <tr
-                        key={getItemKey(trackBy, item, rowIndex)}
-                        className={clsx(styles.row, isSelected && styles['row-selected'])}
-                        onFocus={({ currentTarget }) => stickyHeaderRef.current?.scrollToRow(currentTarget)}
-                        {...focusMarkers.item}
-                        onClick={onRowClickHandler && onRowClickHandler.bind(null, rowIndex, item)}
-                        onContextMenu={onRowContextMenuHandler && onRowContextMenuHandler.bind(null, rowIndex, item)}
-                      >
-                        {selectionType !== undefined && (
-                          <TableBodyCell
-                            className={styles['selection-control']}
-                            isFirstRow={firstVisible}
-                            isLastRow={lastVisible}
-                            isSelected={isSelected}
-                            isNextSelected={isNextSelected}
-                            isPrevSelected={isPrevSelected}
-                            wrapLines={false}
-                          >
-                            <SelectionControl
-                              onFocusDown={moveFocusDown}
-                              onFocusUp={moveFocusUp}
-                              onShiftToggle={updateShiftToggle}
-                              {...getItemSelectionProps(item)}
+                      <React.Fragment key={getItemKey(trackBy, item, rowIndex)}>
+                        <tr
+                          className={clsx(styles.row, isSelected && styles['row-selected'], disabled && disabled(item) && styles['row-disabled'])}
+                          onFocus={({ currentTarget }) => stickyHeaderRef.current?.scrollToRow(currentTarget)}
+                          {...focusMarkers.item}
+                          onClick={onRowClickHandler && onRowClickHandler.bind(null, rowIndex, item)}
+                          onContextMenu={onRowContextMenuHandler && onRowContextMenuHandler.bind(null, rowIndex, item)}
+                        >
+                          {selectionType !== undefined && (
+                            <TableBodyCell
+                              className={styles['selection-control']}
+                              isFirstRow={firstVisible}
+                              isLastRow={lastVisible}
+                              isSelected={isSelected}
+                              isNextSelected={isNextSelected}
+                              isPrevSelected={isPrevSelected}
+                              wrapLines={false}
+                            >
+                              <SelectionControl
+                                onFocusDown={moveFocusDown}
+                                onFocusUp={moveFocusUp}
+                                onShiftToggle={updateShiftToggle}
+                                {...getItemSelectionProps(item)}
+                              />
+                            </TableBodyCell>
+                          )}
+                          {visibleColumnDefinitions.map((column, colIndex) => (
+                            <TableBodyCellContent
+                              key={getColumnKey(column, colIndex)}
+                              style={{
+                                ...(resizableColumns
+                                  ? {}
+                                  : {
+                                      width: column.width,
+                                      minWidth: column.minWidth,
+                                      maxWidth: column.maxWidth,
+                                      margin: '5px 10px 5px 2px',
+                                      padding: '5px 10px 5px 2px',
+                                    }),
+                                ...(compactRow
+                                  ? {
+                                      lineHeight: '0',
+                                      margin: '0px 10px 0px 10px !important',
+                                      padding: '0px 10px 0px 12px !important',
+                                    }
+                                  : {}),
+                              }}
+                              column={column}
+                              item={item}
+                              wrapLines={wrapLines}
+                              isFirstRow={firstVisible}
+                              isLastRow={lastVisible}
+                              isSelected={isSelected}
+                              isNextSelected={isNextSelected}
+                              isPrevSelected={isPrevSelected}
                             />
-                          </TableBodyCell>
+                          ))}
+                        </tr>
+                        {expanded && expanded(item) && (
+                          <tr className={clsx('row', 'row-detailed-btm')} data-testid="enhanced-table-expanded-row">
+                            <td
+                              colSpan={
+                                selectionType ? visibleColumnDefinitions.length + 1 : visibleColumnDefinitions.length
+                              }
+                              className={clsx(
+                                'enhanced-table-expanded-cell',
+                                'cell',
+                                'body-cell',
+                                'selection-control',
+                              )}
+                            >
+                              {expandedContent && expandedContent(item)}
+                            </td>
+                          </tr>
                         )}
-                        {visibleColumnDefinitions.map((column, colIndex) => (
-                          <TableBodyCellContent
-                            key={getColumnKey(column, colIndex)}
-                            style={
-                              resizableColumns
-                                ? {}
-                                : {
-                                    width: column.width,
-                                    minWidth: column.minWidth,
-                                    maxWidth: column.maxWidth,
-                                  }
-                            }
-                            column={column}
-                            item={item}
-                            wrapLines={wrapLines}
-                            isFirstRow={firstVisible}
-                            isLastRow={lastVisible}
-                            isSelected={isSelected}
-                            isNextSelected={isNextSelected}
-                            isPrevSelected={isPrevSelected}
-                          />
-                        ))}
-                      </tr>
+                      </React.Fragment>
                     );
                   })
                 )}

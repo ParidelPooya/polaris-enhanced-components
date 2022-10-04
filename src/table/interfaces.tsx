@@ -18,6 +18,27 @@ export interface TableForwardRefType {
   <T>(props: TableProps<T> & { ref?: React.Ref<TableProps.Ref> }): JSX.Element;
 }
 export interface TableProps<T = any> extends BaseComponentProps {
+
+  /**
+   * Renders the row in a extended view.
+   */
+  expanded?: TableProps.IsItemExpanded<T>;
+
+  /**
+   * Displayed when the row is expended.
+   */
+  expandedContent?:  TableProps.ExpandedContent<T>;
+
+    /**
+   * Renders the row with a disabled style.
+   */
+  disabled?: TableProps.Disabled<T>;
+
+  /**
+   * Renders the row without padding and margin.
+   */
+  compactRow?: boolean;
+
   /**
    * Heading element of the table container. Use the [header component](/components/header/).
    */
@@ -266,7 +287,15 @@ export namespace TableProps {
   export interface SelectionChangeDetail<T> {
     selectedItems: T[];
   }
+
   export type IsItemDisabled<T> = (item: T) => boolean;
+
+  export type IsItemExpanded<T> = (item: T) => boolean;
+
+  export type ExpandedContent<T> = (item: T) => React.ReactNode;
+
+  export type Disabled<T> = (item: T) => boolean;
+
   export interface AriaLabels<T> {
     allItemsSelectionLabel?: (data: TableProps.SelectionState<T>) => string;
     itemSelectionLabel?: (data: TableProps.SelectionState<T>, row: T) => string;
